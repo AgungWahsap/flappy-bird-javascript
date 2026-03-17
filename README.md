@@ -50,7 +50,7 @@ This project helped me understand:
 ##Screenshots
 
 ### Gameplay
-![Gameplay](./sreenshots/play-game.png)
+![Gameplay](./sreenshots/gameplay.png)
 
 ### Game Over
 ![Game Over](./screenshots/popup.png)
