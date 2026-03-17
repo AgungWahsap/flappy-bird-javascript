@@ -82,4 +82,4 @@ Instead of building a static clone, I focused on making the game configurable an
 
 ## 🔗 GitHub Repository
 
-https://github.com/USERNAME/flappy-bird-javascript
+[https://github.com/USERNAME/flappy-bird-javascript](https://agungwahsap.github.io/flappy-bird-javascript/)
