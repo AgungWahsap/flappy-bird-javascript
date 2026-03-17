@@ -50,13 +50,13 @@ This project helped me understand:
 ##Screenshots
 
 ### Gameplay
-![Gameplay](./assets/gameplay.png)
+![Gameplay](./sreenshots/play-game.png)
 
 ### Game Over
-![Game Over](./assets/gameover.png)
+![Game Over](./screenshots/popup.png)
 
 ### Settings Panel
-![Settings](./assets/settings.png)
+![Settings](./screenshots/setting.png)
 
 ---
 
