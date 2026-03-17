@@ -60,7 +60,7 @@ This project helped me understand:
 
 ## 🚀 Live Demo
 
-(Add GitHub Pages link here)
+[(Add GitHub Pages link here)](https://agungwahsap.github.io/flappy-bird-javascript/)
 
 ---
 
