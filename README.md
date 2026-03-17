@@ -56,7 +56,7 @@ This project helped me understand:
 ![Game Over](./screenshots/popup.png)
 
 ### Settings Panel
-![Settings](./screenshots/setting.png)
+![Settings](./screenshots/settings.png)
 
 ---
 
