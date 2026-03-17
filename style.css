@@ -1,0 +1,73 @@
+:root{
+  --bg: #87CEEB;
+  --fg: #222;
+  --accent: #10b981;
+  --accent-2: #f59e0b;
+  --danger: #ef4444;
+}
+*{ box-sizing: border-box; }
+html, body{ height:100%; margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+
+/* Arena */
+.background{
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--bg), #e0f7ff 60%, #b1e3a5 60%);
+  user-select: none;
+}
+
+/* Burung */
+.bird{
+  position: absolute;
+  left: 20vw;
+  top: 40vh;
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  z-index: 5;
+}
+.bird img{ width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+
+/* Pipa */
+.pipe_sprite{
+  position: absolute;
+  width: 8vw;
+  min-width: 70px;
+  background: #6fd16c;
+  border: 3px solid #3a9a37;
+  border-radius: 6px;
+  z-index: 2;
+}
+
+/* HUD */
+.hud{ position: absolute; top: 12px; left: 12px; z-index: 10; color: var(--fg); font-weight: 700; }
+.score_title{ margin-right: 6px; }
+.message{ position: absolute; top: 20vh; left: 50%; transform: translateX(-50%); text-align: center; z-index: 10; }
+.messageStyle{ font-weight: 800; font-size: 28px; color: var(--fg); text-shadow: 0 2px 0 #fff8; }
+
+/* Overlay Menu */
+.overlay{ position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: rgba(0,0,0,.35); backdrop-filter: blur(2px); }
+.menu{ width: min(680px, 92vw); background: #fff; color:#111; border-radius: 16px; padding: 20px 18px; box-shadow: 0 12px 30px rgba(0,0,0,.18); }
+.menu h1{ margin: 0 0 8px; font-size: 26px; }
+.menu h2{ margin: 0 0 8px; font-size: 22px; }
+.menu p.hint{ margin: 0 14px 14px 0; color:#555; font-size: 14px; }
+
+.stack{ display:flex; flex-direction:column; gap:12px; margin-top: 8px; }
+.preset{ display:flex; gap:10px; flex-wrap: wrap; }
+.preset.big .btn{ font-size: 18px; padding: 14px 18px; }
+
+.screen.hidden{ display:none; }
+
+/* Tombol */
+.btn{ border:0; padding:10px 14px; border-radius:10px; font-weight:700; cursor:pointer; }
+.btn.primary{ background: var(--accent); color:#fff; }
+.btn.ghost{ background:#eef2f7; color:#111; }
+.btn.warn{ background: var(--accent-2); color:#111; }
+.btn.danger{ background: var(--danger); color:#fff; }
+.kbd{ display:inline-block; background:#111; color:#fff; border-radius:6px; padding:2px 6px; font-weight:700; font-size:12px; }
+
+.actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:14px; }
+.credits{ margin: 10px 0 0; color:#333; }

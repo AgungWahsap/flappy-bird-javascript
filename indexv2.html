@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flappy Bird – dengan Menu</title>
+  <style>
+    :root{
+      --bg: #87CEEB;
+      --fg: #222;
+      --accent: #10b981;
+      --accent-2: #f59e0b;
+      --danger: #ef4444;
+    }
+    *{ box-sizing: border-box; }
+    html, body{ height:100%; margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+
+    /* Arena permainan */
+    .background{
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: linear-gradient(180deg, var(--bg), #e0f7ff 60%, #b1e3a5 60%);
+      user-select: none;
+    }
+
+    /* Burung */
+    .bird{
+      position: absolute;
+      left: 20vw;
+      top: 40vh;
+      width: 50px;
+      height: 50px;
+      display: grid;
+      place-items: center;
+      z-index: 5;
+    }
+    .bird img{ width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+
+    /* Pipa */
+    .pipe_sprite{
+      position: absolute;
+      width: 8vw;
+      min-width: 70px;
+      background: #6fd16c;
+      border: 3px solid #3a9a37;
+      border-radius: 6px;
+      z-index: 2;
+    }
+
+    /* HUD skor & pesan */
+    .hud{ position: absolute; top: 12px; left: 12px; z-index: 10; color: var(--fg); font-weight: 700; }
+    .score_title{ margin-right: 6px; }
+    .message{ position: absolute; top: 20vh; left: 50%; transform: translateX(-50%); text-align: center; z-index: 10; }
+    .messageStyle{ font-weight: 800; font-size: 28px; color: var(--fg); text-shadow: 0 2px 0 #fff8; }
+
+    /* Overlay Menu */
+    .overlay{
+      position: fixed; inset: 0; z-index: 20; display: grid; place-items: center;
+      background: rgba(0,0,0,.35); backdrop-filter: blur(2px);
+    }
+    .menu{
+      width: min(680px, 92vw);
+      background: #fff; color:#111; border-radius: 16px; padding: 20px 18px; box-shadow: 0 12px 30px rgba(0,0,0,.18);
+    }
+    .menu h1{ margin: 0 0 8px; font-size: 22px; }
+    .menu p.hint{ margin: 0 0 14px; color:#555; font-size: 14px; }
+    .grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .row{ display:flex; gap:8px; align-items:center; justify-content:space-between; background:#f6f7f9; padding:10px 12px; border-radius:10px; }
+    .row label{ font-weight: 600; font-size: 14px; color:#222; }
+    .row input[type="number"]{ width: 110px; padding:8px 10px; border-radius:8px; border:1px solid #e5e7eb; font: inherit; }
+    .row input[type="range"]{ width: 160px; }
+    .menu .actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:14px; }
+    .btn{ border:0; padding:10px 14px; border-radius:10px; font-weight:700; cursor:pointer; }
+    .btn.primary{ background: var(--accent); color:#fff; }
+    .btn.ghost{ background:#eef2f7; color:#111; }
+    .btn.warn{ background: var(--accent-2); color:#111; }
+    .btn.danger{ background: var(--danger); color:#fff; }
+    .kbd{ display:inline-block; background:#111; color:#fff; border-radius:6px; padding:2px 6px; font-weight:700; font-size:12px; }
+
+    /* Footer help */
+    .help{ margin-top:10px; font-size:13px; color:#444; }
+  </style>
+</head>
+<body>
+  <div class="background">
+    <div class="hud">
+      <span class="score_title">Score :</span><span class="score_val">0</span>
+    </div>
+    <div class="message messageStyle"></div>
+
+    <div class="bird"><img id="bird-1" src="assets/Bird-2.png" alt="bird" /></div>
+  </div>
+
+  <!-- Overlay Menu -->
+  <div class="overlay" id="menuOverlay" aria-modal="true" role="dialog">
+    <div class="menu">
+      <h1>Flappy Bird – Pengaturan</h1>
+      <p class="hint">Atur parameter permainan sebelum mulai. Simpan otomatis ke <em>localStorage</em>. Kontrol: <span class="kbd">Space</span>/<span class="kbd">↑</span> untuk terbang, <span class="kbd">Enter</span> untuk restart.</p>
+
+      <div class="grid">
+        <div class="row"><label>Kecepatan Gerak (px/f):</label><input id="opt_speed" type="number" step="1" min="1" value="10"></div>
+        <div class="row"><label>Gravitasi (+):</label><input id="opt_gravity" type="number" step="0.05" min="0.05" value="0.3"></div>
+        <div class="row"><label>Kekuatan Flap (−):</label><input id="opt_flap" type="number" step="0.1" min="1" value="7.6"></div>
+        <div class="row"><label>Jarak Antar Pipa (vh):</label><input id="opt_gap" type="number" step="1" min="10" value="35"></div>
+        <div class="row"><label>Interval Spawn (frame):</label><input id="opt_spawn" type="number" step="1" min="30" value="120"></div>
+        <div class="row"><label>Volume Musik:</label><input id="opt_bgm" type="range" min="0" max="1" step="0.01" value="0.5"></div>
+        <div class="row"><label>Volume SFX:</label><input id="opt_sfx" type="range" min="0" max="1" step="0.01" value="1"></div>
+        <div class="row"><label>Preset Kesulitan:</label>
+          <div style="display:flex; gap:8px;">
+            <button class="btn ghost" data-preset="easy">Easy</button>
+            <button class="btn ghost" data-preset="normal">Normal</button>
+            <button class="btn ghost" data-preset="hard">Hard</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn warn" id="btnDefaults">Reset Default</button>
+        <button class="btn ghost" id="btnSave">Simpan</button>
+        <button class="btn primary" id="btnStart">Mulai Game</button>
+      </div>
+      <div class="help">Tip: tekan <span class="kbd">Space</span> saat menu terbuka untuk mulai cepat menggunakan pengaturan saat ini.</div>
+    </div>
+  </div>
+
+  <script>
+    /* =====================
+       AUDIO & ASSET SETUP
+       ===================== */
+    const sound_point = new Audio('assets/point.mp3');
+    const sound_die   = new Audio('assets/die.mp3');
+    const sound_flap  = new Audio('assets/flap3.mp3');
+    const bg_music    = new Audio('assets/8bi.mp3');
+    bg_music.loop = true;
+
+    // Elemen DOM inti
+    const backgroundEl = document.querySelector('.background');
+    const bird = document.querySelector('.bird');
+    const img = document.getElementById('bird-1');
+    const score_val = document.querySelector('.score_val');
+    const message = document.querySelector('.message');
+    const score_title = document.querySelector('.score_title');
+
+    // Overlay & input
+    const overlay = document.getElementById('menuOverlay');
+    const $ = (sel)=>document.querySelector(sel);
+    const opt = {
+      speed:  $('#opt_speed'),
+      gravity:$('#opt_gravity'),
+      flap:   $('#opt_flap'),
+      gap:    $('#opt_gap'),
+      spawn:  $('#opt_spawn'),
+      bgm:    $('#opt_bgm'),
+      sfx:    $('#opt_sfx'),
+    };
+
+    const DEFAULTS = { speed: 10, gravity: 0.3, flap: 7.6, gap: 35, spawn: 120, bgm: 0.5, sfx: 1 };
+
+    function loadSettings(){
+      const saved = JSON.parse(localStorage.getItem('flappy_settings')||'{}');
+      const cfg = { ...DEFAULTS, ...saved };
+      opt.speed.value = cfg.speed;
+      opt.gravity.value = cfg.gravity;
+      opt.flap.value = cfg.flap;
+      opt.gap.value = cfg.gap;
+      opt.spawn.value = cfg.spawn;
+      opt.bgm.value = cfg.bgm;
+      opt.sfx.value = cfg.sfx;
+      applyVolumes();
+    }
+    function saveSettings(){
+      const cfg = currentCfg();
+      localStorage.setItem('flappy_settings', JSON.stringify(cfg));
+    }
+    function currentCfg(){
+      return {
+        speed:  +opt.speed.value,
+        gravity:+opt.gravity.value,
+        flap:   +opt.flap.value,
+        gap:    +opt.gap.value,
+        spawn:  +opt.spawn.value,
+        bgm:    +opt.bgm.value,
+        sfx:    +opt.sfx.value,
+      };
+    }
+    function applyVolumes(){
+      const cfg = currentCfg();
+      bg_music.volume = cfg.bgm;
+      [sound_point, sound_die, sound_flap].forEach(a=>a.volume = cfg.sfx);
+    }
+
+    // Preset tombol
+    document.querySelectorAll('[data-preset]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const p = btn.dataset.preset;
+        let pre = DEFAULTS;
+        if(p==='easy') pre = { speed:8, gravity:0.26, flap:7.8, gap:40, spawn:130, bgm:+opt.bgm.value, sfx:+opt.sfx.value };
+        if(p==='normal') pre = { speed:10, gravity:0.3, flap:7.6, gap:35, spawn:120, bgm:+opt.bgm.value, sfx:+opt.sfx.value };
+        if(p==='hard') pre = { speed:13, gravity:0.34, flap:7.4, gap:30, spawn:110, bgm:+opt.bgm.value, sfx:+opt.sfx.value };
+        Object.entries(pre).forEach(([k,v])=>{ if(opt[k]) opt[k].value = v; });
+        applyVolumes();
+      });
+    });
+
+    $('#btnDefaults').addEventListener('click', ()=>{ Object.entries(DEFAULTS).forEach(([k,v])=>{ if(opt[k]) opt[k].value = v; }); applyVolumes(); });
+    $('#btnSave').addEventListener('click', saveSettings);
+
+    // Status permainan
+    let game_state = 'Start';
+    img.style.display = 'none';
+    message.classList.add('messageStyle');
+    message.innerHTML = 'Tekan <span class="kbd">Space</span> atau klik <b>Mulai Game</b>';
+
+    // Variabel dinamis yang dipengaruhi menu
+    let move_speed = DEFAULTS.speed;
+    let grativy    = DEFAULTS.gravity; // mengikuti ejaan kode asli
+    let flap_force = DEFAULTS.flap;
+    let pipe_gap   = DEFAULTS.gap;
+    let spawn_every= DEFAULTS.spawn; // frame interval
+
+    function applySettingsToVars(){
+      const cfg = currentCfg();
+      move_speed = cfg.speed;
+      grativy    = cfg.gravity;
+      flap_force = cfg.flap;
+      pipe_gap   = cfg.gap;
+      spawn_every= cfg.spawn;
+      applyVolumes();
+    }
+
+    function showMenu(){ overlay.style.display='grid'; }
+    function hideMenu(){ overlay.style.display='none'; }
+
+    $('#btnStart').addEventListener('click', ()=>{ saveSettings(); applySettingsToVars(); startGame(); });
+
+    // START dengan Space saat menu tampil
+    document.addEventListener('keydown', (e)=>{
+      if((e.key===' ' || e.code==='Space') && overlay.style.display !== 'none' && game_state!=='Play'){
+        e.preventDefault();
+        saveSettings();
+        applySettingsToVars();
+        startGame();
+      }
+    });
+
+    // Restart dengan Enter saat Game Over
+    document.addEventListener('keydown', (e)=>{
+      if((e.key==='Enter') && game_state==='End'){
+        e.preventDefault();
+        startGame();
+      }
+    });
+
+    // ====== Kendali flap (satu kali listener, tidak di dalam loop) ======
+    let bird_dy = 0;
+    document.addEventListener('keydown', (e)=>{
+      if(game_state!=='Play') return;
+      if(e.key==='ArrowUp' || e.key===' ' || e.code==='Space'){
+        img.src = 'assets/Bird.png';
+        bird_dy = -flap_force;
+        try{ sound_flap.currentTime = 0; sound_flap.play(); }catch{}
+      }
+    });
+    document.addEventListener('keyup', (e)=>{
+      if(game_state!=='Play') return;
+      if(e.key==='ArrowUp' || e.key===' ' || e.code==='Space'){
+        img.src = 'assets/Bird-2.png';
+      }
+    });
+
+    function clearPipes(){
+      document.querySelectorAll('.pipe_sprite').forEach(e=>e.remove());
+    }
+
+    function resetBird(){
+      bird.style.top = '40vh';
+      bird.style.left = '20vw';
+      bird_dy = 0;
+    }
+
+    function startGame(){
+      clearPipes();
+      resetBird();
+      img.style.display = 'block';
+      message.innerHTML = '';
+      message.classList.remove('messageStyle');
+      score_title.textContent = 'Score : ';
+      score_val.textContent = '0';
+      game_state = 'Play';
+      hideMenu();
+      try{ bg_music.currentTime = 0; bg_music.play(); }catch{}
+      play();
+    }
+
+    function endGame(text='Game Over'){ 
+      game_state = 'End';
+      message.innerHTML = `<span style="color:${getComputedStyle(document.documentElement).getPropertyValue('--danger').trim()}">${text}</span><br>Press <b>Enter</b> To Restart`;
+      message.classList.add('messageStyle');
+      img.style.display = 'none';
+      try{ sound_die.play(); }catch{}
+      try{ bg_music.pause(); }catch{}
+      showMenu();
+    }
+
+    // =====================
+    //    LOOP PERMAINAN
+    // =====================
+    let raf_move, raf_grav, raf_pipe;
+
+    function play(){
+      let pipe_seperation = 0; // ejaan mengikuti kode asli
+
+      function move(){
+        if(game_state !== 'Play') return;
+        const pipe_sprite = document.querySelectorAll('.pipe_sprite');
+        const bird_props = bird.getBoundingClientRect();
+
+        pipe_sprite.forEach((element)=>{
+          const rect = element.getBoundingClientRect();
+
+          if(rect.right <= 0){
+            element.remove();
+          } else {
+            // tabrakan
+            const collide = (
+              bird_props.left < rect.left + rect.width &&
+              bird_props.left + bird_props.width > rect.left &&
+              bird_props.top < rect.top + rect.height &&
+              bird_props.top + bird_props.height > rect.top
+            );
+            if(collide){ return endGame(); }
+
+            // skor (hanya dari pipa bawah yang punya increase_score = '1')
+            if(rect.right < bird_props.left && rect.right + move_speed >= bird_props.left && element.increase_score === '1'){
+              score_val.textContent = String(+score_val.textContent + 1);
+              element.increase_score = '0';
+              try{ sound_point.play(); }catch{}
+            }
+
+            element.style.left = (rect.left - move_speed) + 'px';
+          }
+        });
+        raf_move = requestAnimationFrame(move);
+      }
+
+      function apply_gravity(){
+        if(game_state !== 'Play') return;
+        const bg = backgroundEl.getBoundingClientRect();
+        const bird_props = bird.getBoundingClientRect();
+
+        bird_dy = bird_dy + grativy;
+
+        // cek atas & bawah
+        if(bird_props.top <= 0 || bird_props.bottom >= bg.bottom){
+          return endGame();
+        }
+
+        bird.style.top = (bird_props.top + bird_dy) + 'px';
+        raf_grav = requestAnimationFrame(apply_gravity);
+      }
+
+      function create_pipe(){
+        if(game_state !== 'Play') return;
+
+        if(pipe_seperation > spawn_every){
+          pipe_seperation = 0;
+          const pipe_posi = Math.floor(Math.random() * 48) + 8; // 8..55
+
+          // pipa atas (dibalik)
+          const topPipe = document.createElement('div');
+          topPipe.className = 'pipe_sprite';
+          topPipe.style.height = (pipe_posi - 8) + 'vh';
+          topPipe.style.top = '0';
+          topPipe.style.left = '100vw';
+
+          // pipa bawah (beri flag skor)
+          const bottomPipe = document.createElement('div');
+          bottomPipe.className = 'pipe_sprite';
+          bottomPipe.style.height = (100 - (pipe_posi + pipe_gap)) + 'vh';
+          bottomPipe.style.top = (pipe_posi + pipe_gap) + 'vh';
+          bottomPipe.style.left = '100vw';
+          bottomPipe.increase_score = '1';
+
+          backgroundEl.appendChild(topPipe);
+          backgroundEl.appendChild(bottomPipe);
+        }
+        pipe_seperation++;
+        raf_pipe = requestAnimationFrame(create_pipe);
+      }
+
+      cancelAnimationFrame(raf_move); cancelAnimationFrame(raf_grav); cancelAnimationFrame(raf_pipe);
+      raf_move = requestAnimationFrame(move);
+      raf_grav = requestAnimationFrame(apply_gravity);
+      raf_pipe = requestAnimationFrame(create_pipe);
+    }
+
+    // Inisialisasi menu
+    loadSettings();
+    showMenu();
+  </script>
+</body>
+</html>
